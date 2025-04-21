@@ -265,3 +265,109 @@ O circuito multiplicador é obtido de forma parecida, sua expressão lógica pod
 *Figura 11: Esquemático do multiplicador de 4 bits*
 
 O multiplicador de 4 bits resulta em uma saída de até 8 bits, então podemos usá-lo no nosso projeto, fazendo a multiplicação apenas entre os bits menos significativos, e para garantir um intervalo de reprsentação entre 0 e 1024, podemos ainda expandir para um multiplicador de 5 bits, cujas expressões lógicas são obtidas abaixo:
+
+
+de 5 bits*
+
+Agora temos as expressões para cada bit de saída do resultado da multiplicação, assim temos:
+
+1.  $P_0 = A_0B_0$
+2.  $P_1 = A_1B_0 + A_0B_1$
+3.  $P_2 = A_2B_0 + A_1B_1 + A_0B_2$
+4.  $P_3 = A_3B_0 + A_2B_1 + A_1B_2 + A_0B_3$
+5.  $P_4 = A_0B_4 + A_3B_1 + A_2B_2 + A_1B_3 + A_4B_0$
+6.  $P_5 = A_3B_2 + A_2B_3 + A_4B_1$
+7.  $P_6 = A_4B_2 + A_3B_3 + A_2B_4$
+8.  $P_7 = A_4B_3+A_3B_4$
+
+Porém as somas representadas nesses bits de saída precisam ser feitas utilizando somadores completos, e não por portas OR, como normalmente são feitas, pois podem carregar informação de carrie in e carrie out.
+
+### 3.5 Incrementador e Decrementador
+É possível construir esses dois blocos de forma imediata utilizando o somador e o subtrator de 8 bits que ja foram desenvolvidos anteriormente, de maneira muito fácil, apenas fixando 1 na entrada do somador para fazer o incrementador, e utilizando o subtrator para fazer o decrementador.
+
+O incrementador pode ser feito diretamente pelo esquemático abaixo:
+
+![Esquemático do incrementador de 8 bits](figuras/Incrementador.png)
+*Figura 12: Esquemático do incrementador de 8 bits*
+
+de forma análoga o decrementador também é feito utilizando a mesma lógica.
+
+### 3.6 Multiplexador de 16 Canais
+Como todas as operações descritas acima serão feitas em paralelo no nosso projeto, então precisamos que a saída seja uma única e exclusiva dessas operações, dependendo do valor da chave.
+Um componente fundamental para escolher a saída é o multiplexador, ele permite que apenas os bits escolhidos pela chave seletora saiam.
+Podemos construir esse multiplexador de 16 canais, ja que 15 nao é uma potência de 2, utilizando vários multiplexadores simples, vamos começar agrupando 3 multiplexadores, para o número de entradas ir de duas para quatro.
+
+Para conseguirmos um multiplexador de quatro canais, precisamos juntar dois multiplexadores simples em paralelo, e colocar um em série, como mostra o arranjo abaixo:
+
+![Esquemático do multiplexador de 4 bits](figuras/mux_4.png)
+*Figura 13: Esquemático do multiplexador de 4 bits*
+
+Agora podemos evoluir isso, colocando dois multiplexadores de 4 canais em paralelo junto com um simples em série, para poder multiplexar 8 canais, então temos:
+
+![Esquemático do multiplexador de 8 bits](figuras/mux_8.png)
+*Figura 14: Esquemático do multiplexador de 8 bits*
+
+Por fim juntando dois multiplexadores de 8 bits em paralelo com de 2 bits em série, finalmente temos o requerido multiplexador de 16 canais, cuja lógica pode ser implementada bit a bit no VHDL.
+
+### 3.7 Deslocador de Barrel
+Um deslocador de barrel é uma combinação de deslocadores de 1, 2 e 4 bits, que a partir desses deslocamentos pode gerar qualquer deslocamento de 0 até 7 unidades. para a esquerda ou para a direita, como mostra a figura abaixo:
+
+![Arquitetura do deslocador de barrel.](figuras/deslocador_barrel.png)
+*Figura 15: Arquitetura do deslocador de barrel.*
+
+podemos ainda colocar uma entrada de controle que ditará o sentido, assim temos um componente para fazer os dois tipos de deslocamentos.
+
+### 3.8 Conversor BIN - BCD
+A saída do multiplexador da ULA é um número em binário, porém precisamos converter esse número para uma representação visual, e antes de passar pelo display de 7 segmentos, precisa passar por um conversor de binário para BCD, para exibir corretamente.
+
+Porém fazer isso utilizando operações booleanas ja é quase inviável, uma vez que a tabela verdade teria 256 linhas para 8 bits, então fazemos isso utilizando algum algorítmo mais eficiente, o utilizado neste projeto será o algorítmo descrito no site~\cite{realdigital_binary_bcd}, onde são usados apenas um component chamado \textit{add\_if\_over4}, para fazer a lógica de cada dígito do BCD.
+
+### 3.9 Display de 7 Segmentos
+Por fim para mostrar o número, precisamos converter cada digito do número em BCD para decimal, ou seja, para mostrar no display de 7 segmentoos.
+Para isso, podemos utilizar a algebra booleana e obter, a partir de uma tabela verdade, as espressões lógicas de cada led, de maneira bem intuitiva, ja que sabemos quais leds devem ligar para quais entradas.
+
+| Decimal | A | B | C | D | a | b | c | d | e | f | g |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 |
+| 1 | 0 | 0 | 0 | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 0 |
+| 2 | 0 | 0 | 1 | 0 | 1 | 1 | 0 | 1 | 1 | 0 | 1 |
+| 3 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 1 |
+| 4 | 0 | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 1 | 1 |
+| 5 | 0 | 1 | 0 | 1 | 1 | 0 | 1 | 1 | 0 | 1 | 1 |
+| 6 | 0 | 1 | 1 | 0 | 1 | 0 | 1 | 1 | 1 | 1 | 1 |
+| 7 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| 8 | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+| 9 | 1 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 |
+*Tabela 9: Tabela verdade para display de 7 segmentos (0 a 9)*
+
+Por fim a lógica pode ser obtida e simplificada utilizando mapas de karnough, assim temos:
+
+1.  $a = A + A'C +B'D' + BD$
+2.  $b = A + C'D' + CD + A'B'$
+3.  $c = A + BD' + CD + C'$
+4.  $d = A + B'C'D' + CD' + A'B'C + BC'D$
+5.  $e = B'C'D' + AC + AB + CD'$
+6.  $f = A + C'D' + BD' + BC'$
+7.  $g = A + B + C$
+
+Que pode ser facilmente implementada no VHDL armazenando os sinais parciais que aparecem nas operações de cada LED.
+
+## Capítulo 4: Implementação
+
+### 4.1 Códigos VHDL
+Os códigos VHDL foram feitos utilizando os blocos de componentes principais discutidos no capítulo de Projeto, e se encontram como anexo no final deste documento.
+
+### 4.2 Implementação no Kit da DE2
+Para então implementar no kit da DE2, as saídas foram mapeadas para os display HEX da FPGA, assim como o bit de zero e o bit de carrie out, além da chave seletora e das entradas A e B.
+
+## Capítulo 5: Conclusão
+Foi realizada a simulação do Projeto proposto no software Modelsim, foi visto que todas as operações foram implementadas corretamente, assim como o multiplexador de 16 entradas, o conversor BCD e também o display de 7 segmentos.
+
+A implementação no kit da DE2 mostrou também os resultados corretos da implementação da Unidade lógica aritimética, assim foi concluído o primeiro projeto da disciplina de circuitos digitais a nível de componentes, a unidade lógica aritmética, com a implementação no código em VHDL, simulação realizada no modelsim e testes no kit da DE2.
+
+## Referências
+~\cite{vahid} Vahid, Frank. \textit{Sistemas Digitais: Projeto, Otimização e HDLs}. Artmed Bookman, 2008.
+
+~\cite{tocci} tocci, Ronald, widmer, neal, and moss, gregory. \textit{Sistemas Digitais: princípios e Otimizações}. Artmed Bookman, 2011.
+
+~\cite{realdigital_binary_bcd} Real Digital. \textit{Binary to BCD - Welcome to Real Digital}. [https://www.realdigital.org/doc/6dae6583570fd816d1d675b93578203d](https://www.realdigital.org/doc/6dae6583570fd816d1d675b93578203d). Acessado em: [Data de hoje].
