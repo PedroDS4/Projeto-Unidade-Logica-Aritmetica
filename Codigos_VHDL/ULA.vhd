@@ -74,7 +74,7 @@ architecture CKT of ula is
 	component barrel_shifter
 	  port (
         A : in  std_logic_vector(7 downto 0);
-        B : in  std_logic_vector(2 downto 0); -- n鷐ero de deslocamentos (0 a 7)
+        B : in  std_logic_vector(2 downto 0); -- n煤mero de deslocamentos (0 a 7)
         Y : out std_logic_vector(7 downto 0)
     );
   end component;
@@ -82,7 +82,7 @@ architecture CKT of ula is
   component barrel_shifter_right
   port (
         A : in  std_logic_vector(7 downto 0);
-        B : in  std_logic_vector(2 downto 0); -- n鷐ero de deslocamentos (0 a 7)
+        B : in  std_logic_vector(2 downto 0); -- n煤mero de deslocamentos (0 a 7)
         Y : out std_logic_vector(7 downto 0)
     );
 	end component;
@@ -129,6 +129,24 @@ architecture CKT of ula is
   );	
   end component;
   
+
+  component mux_8
+  port(
+		A: in std_logic_vector(7 downto 0);
+		B: in std_logic_vector(7 downto 0);
+		C: in std_logic_vector(7 downto 0);
+		D: in std_logic_vector(7 downto 0);
+		E: in std_logic_vector(7 downto 0);
+		F: in std_logic_vector(7 downto 0);
+		G: in std_logic_vector(7 downto 0);
+		H: in std_logic_vector(7 downto 0);
+
+		S: in std_logic_vector(2 downto 0);
+
+		Y_8: out std_logic_vector(7 downto 0)
+	);
+	end component;
+
   
   component mux_16
   port(
@@ -175,6 +193,11 @@ architecture CKT of ula is
   
   signal R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15,R16: std_logic_vector(7 downto 0);
   
+  signal c_01,c_02,c_03,c_04,c_05: std_logic;
+  signal c_0_v,c_01_v,c_02_v,c_03_v,c_04_v,c_05_v: std_logic_vector(7 downto 0);
+
+  
+
   signal S_mux: std_logic_vector(7 downto 0);
   
   signal BCD: std_logic_vector(11 downto 0);
@@ -187,33 +210,33 @@ begin
    Canal1: somador_8_bits port map(
   	A => A,
   	B => B,
-  	C_0 => c_0,      -- carry-out vai pro pr髕imo est醙io
+  	C_0 => c_01,      -- carry-out vai pro pr贸ximo est谩gio
   	S => R1
 );
 
   Canal2: subtrator_8_bit port map(
   	A => A,
   	B => B,
-  	C_0 => c_0,      -- carry-out vai pro pr髕imo est醙io
+  	C_0 => c_02,      -- carry-out vai pro pr贸ximo est谩gio
   	S => R2
 );
   
   Canal3: multiplicador_8_bits port map(
   	A => A,
   	B => B,
-  	C_0 => c_0,      -- carry-out vai pro pr髕imo est醙io
+  	C_0 => c_03,      -- carry-out vai pro pr贸ximo est谩gio
   	S => R3
 );
   
   Canal4: inc_8_bit port map(
   	A => A,
-  	C_0 => c_0,      -- carry-out vai pro pr髕imo est醙io
+  	C_0 => c_04,      -- carry-out vai pro pr贸ximo est谩gio
   	S => R4
 );
 
   Canal5: dec_8_bit port map(
   	A => A,
-  	C_0 => c_0,      -- carry-out vai pro pr髕imo est醙io
+  	C_0 => c_05,      -- carry-out vai pro pr贸ximo est谩gio
   	S => R5
 );
 
@@ -265,8 +288,29 @@ begin
  	 R6 <= "00000000";
  	 R7 <= "00000000";
 	 R16 <= "00000000";
+	
+	c_01_v <= (others => c_01);
+	c_02_v <= (others => c_02);
+	c_03_v <= (others => c_03);
+	c_04_v <= (others => c_04);
+	c_05_v <= (others => c_05);
 
+        mux_8_c0: mux_8 port map(
+		A => c_01_v,
+		B => c_02_v,
+		C => c_03_v,
+		D => c_04_v,
+		E => c_05_v,
+		F => "00000000",
+		G => "00000000",
+		H => "00000000",
+
+		S=> key(2 downto 0),
+		Y_8 => c_0_v
+
+		);
 		
+			
   
   	mux16: mux_16 port map(
     		A => R1,
@@ -290,8 +334,13 @@ begin
 		
 		);
 	
-	
+	 ---Bit de Zero---
+	 z <= not( S_mux(0) or S_mux(1) or S_mux(2) or S_mux(3) or S_mux(4) or S_mux(5) or S_mux(6) or S_mux(7) );
 	 
+ 	 ---Bit de Carrie out---
+	 c_0 <= c_0_v(0);
+
+
 	 BCD_1: BCD4 port map(
 	   BIN => S_mux,
 	   BCD_C => BCD(11 downto 8),
