@@ -7,7 +7,7 @@ Esse relatório descreve os procedimentos realizados para a concepção do prime
 É um projeto de circuito digital a nível de componentes menores que podem ser combinados a fim de formar vários componentes maiores para fazer as operações em todos esses números de bits.
 A figura abaixo mostra detalhadamente o esquema inicial do projeto proposto.
 
-![Esquemático do Projeto da Ula](figuras/Projeto_ula.png)
+![Esquemático do Projeto da Ula](figuras/ULA_diagrama.png)
 *Figura 1: Esquemático do Projeto da Ula*
 
 As operações devem ser feitas todas em paralelo dentro da ULA, para então serem multiplexadas e a saída retornar apenas uma das 15 operações, que foi escolhida pela chave.
